@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/toffer/sendit/client"
 )
 
@@ -12,4 +14,5 @@ const (
 func main() {
 	client.ParseReqs(REQUESTS, TARGET)
 	client.SendReqs()
+	fmt.Println(client.ComputeResults())
 }

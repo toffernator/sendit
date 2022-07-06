@@ -14,8 +14,8 @@ const (
 
 func TestParseRequestsPopulatescollection(t *testing.T) {
 	client.ParseReqs(REQUESTS, BASE_TARGET)
-	if collection.Size() != 10 {
-		t.Logf("Expected 10 requests but found %d", collection.Size())
+	if collection.SizeReqs() != 10 {
+		t.Logf("Expected 10 requests but found %d", collection.SizeReqs())
 		t.Fail()
 	}
 }

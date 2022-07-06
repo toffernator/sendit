@@ -2,15 +2,15 @@ package client
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 
-	"github.com/toffer/sendit/collection"
+	"github.com/toffer/sendit/models"
 )
 
 var (
@@ -27,7 +27,7 @@ func ParseReqs(path string, baseTarget string) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		req := parseReq(scanner.Text(), baseTarget)
-		collection.AddReq(req)
+		addReq(req)
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -35,10 +35,10 @@ func ParseReqs(path string, baseTarget string) {
 	}
 }
 
-func parseReq(req string, baseTarget string) *http.Request {
-	reqOpts := strings.Split(req, ",")
+func parseReq(toParse string, baseTarget string) *models.VerifiableRequest {
+	reqOpts := strings.Split(toParse, ",")
 	if len(reqOpts) != 4 {
-		log.Fatalf("Request '%s' has an invalid format", req)
+		log.Fatalf("Request '%s' has an invalid format", toParse)
 	}
 
 	method := reqOpts[0]
@@ -49,39 +49,46 @@ func parseReq(req string, baseTarget string) *http.Request {
 	} else {
 		body = strings.NewReader(reqOpts[2])
 	}
-
-	parsedReq, err := http.NewRequest(method, url, body)
-	if err != nil {
-		log.Fatalf("Failed to create a request with error: %s", err)
+	var expectedStatusCode int
+	if i, err := strconv.Atoi(reqOpts[3]); err == nil {
+		expectedStatusCode = i
+	} else {
+		log.Fatalf("Failed to convert %v to int with err: %s", reqOpts[3], err)
+		log.Fatalf("Found a non-integer status code %v", reqOpts[3])
 	}
 
-	return parsedReq
+	req := models.NewVerifiableRequest(method, url, body, expectedStatusCode)
+	return req
 }
 
 func SendReqs() {
 	wg := new(sync.WaitGroup)
-	for collection.Size() > 0 {
+	for sizeReqs() > 0 {
 		wg.Add(1)
-		j := collection.Remove()
-		go sendReq(wg, j)
+		req := removeReq()
+		go sendReq(wg, req)
 	}
-
 	wg.Wait()
 }
 
-func sendReq(wg *sync.WaitGroup, req *http.Request) {
+func sendReq(wg *sync.WaitGroup, req *models.VerifiableRequest) {
 	defer wg.Done()
 
-	resp, err := client.Do(req)
+	resp, err := client.Do(&req.Request)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
+	verifiableResponse := models.NewVerifiableResponse(*resp, req.ExpectedStatusCode)
+	addResp(verifiableResponse)
+}
 
-	// Do something with the response here...
-	fmt.Println(string(body))
+func ComputeResults() int {
+	successes := 0
+	for _, resp := range responses {
+		if resp.IsSuccessful() {
+			successes++
+		}
+	}
+	return successes
 }
