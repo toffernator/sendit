@@ -27,7 +27,7 @@ func ParseReqs(path string, baseTarget string) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		req := parseReq(scanner.Text(), baseTarget)
-		collection.Add(req)
+		collection.AddReq(req)
 	}
 
 	if err := scanner.Err(); err != nil {
