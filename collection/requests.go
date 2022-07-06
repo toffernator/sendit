@@ -40,6 +40,12 @@ func Remove() *http.Request {
 	}
 }
 
+func Clear() {
+	for Size() > 0 {
+		_ = Remove()
+	}
+}
+
 func Size() int {
 	return len(reqs)
 }
