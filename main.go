@@ -12,7 +12,8 @@ const (
 )
 
 func main() {
-	client.ParseReqs(REQUESTS, TARGET)
+	client.ParseJobs(REQUESTS, TARGET)
 	client.SendReqs()
-	fmt.Println(client.ComputeResults())
+	results := client.ComputeResults()
+	fmt.Printf("%d / %d\n", results.Successes, results.Total)
 }

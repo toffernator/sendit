@@ -7,82 +7,43 @@ import (
 )
 
 var (
-	requests  []*models.VerifiableRequest
-	responses []*models.VerifiableResponse
-
-	requestsLock  sync.Mutex = sync.Mutex{}
-	responsesLock sync.Mutex = sync.Mutex{}
+	jobs []*models.Job
+	lock sync.Mutex
 )
 
 func init() {
-	requests = make([]*models.VerifiableRequest, 0)
-	responses = make([]*models.VerifiableResponse, 0)
+	jobs = make([]*models.Job, 0)
 }
 
-func addReq(r *models.VerifiableRequest) {
-	requestsLock.Lock()
-	defer requestsLock.Unlock()
+func addJob(j *models.Job) {
+	lock.Lock()
+	defer lock.Unlock()
 
-	requests = append(requests, r)
+	jobs = append(jobs, j)
 }
 
-func addResp(r *models.VerifiableResponse) {
-	responsesLock.Lock()
-	defer responsesLock.Unlock()
+func removeJob() *models.Job {
+	lock.Lock()
+	defer lock.Unlock()
 
-	responses = append(responses, r)
-}
-
-func removeReq() *models.VerifiableRequest {
-	requestsLock.Lock()
-	defer requestsLock.Unlock()
-
-	if len(requests) > 1 {
-		r := requests[len(requests)-1]
-		requests = requests[:len(requests)-1]
+	if len(jobs) > 1 {
+		r := jobs[len(jobs)-1]
+		jobs = jobs[:len(jobs)-1]
 		return r
-	} else if len(requests) == 1 {
-		r := requests[0]
-		requests = make([]*models.VerifiableRequest, 0)
+	} else if len(jobs) == 1 {
+		r := jobs[0]
+		jobs = make([]*models.Job, 0)
 		return r
 	} else {
 		return nil
 	}
 }
 
-func removeResp() *models.VerifiableResponse {
-	responsesLock.Lock()
-	defer responsesLock.Unlock()
+func clearJobs() {
+	lock.Lock()
+	defer lock.Unlock()
 
-	if len(responses) > 1 {
-		r := responses[len(responses)-1]
-		responses = responses[:len(responses)-1]
-		return r
-	} else if len(responses) == 1 {
-		r := responses[0]
-		requests = make([]*models.VerifiableRequest, 0)
-		return r
-	} else {
-		return nil
+	for len(jobs) > 0 {
+		_ = removeJob()
 	}
-}
-
-func clearReqs() {
-	for sizeReqs() > 0 {
-		_ = removeReq()
-	}
-}
-
-func clearResps() {
-	for sizeResps() > 0 {
-		_ = removeResp()
-	}
-}
-
-func sizeReqs() int {
-	return len(requests)
-}
-
-func sizeResps() int {
-	return len(responses)
 }

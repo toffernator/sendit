@@ -6,35 +6,30 @@ import (
 	"net/http"
 )
 
-type VerifiableRequest struct {
-	http.Request
+type Job struct {
+	Request            *http.Request
+	Response           *http.Response
+	HasRun             bool
 	ExpectedStatusCode int
 }
 
-func NewVerifiableRequest(method string, url string, body io.Reader, expectedStatusCode int) *VerifiableRequest {
+func NewJob(method string, url string, body io.Reader, expectedStatusCode int) *Job {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		log.Fatalf("Error while creating a new request: %s", err)
 	}
 
-	return &VerifiableRequest{
-		*req,
-		expectedStatusCode,
+	return &Job{
+		Request:            req,
+		Response:           nil,
+		ExpectedStatusCode: expectedStatusCode,
 	}
 }
 
-type VerifiableResponse struct {
-	http.Response
-	ExpectedStatusCode int
-}
-
-func NewVerifiableResponse(resp http.Response, expectedStatusCode int) *VerifiableResponse {
-	return &VerifiableResponse{
-		resp,
-		expectedStatusCode,
+func (j *Job) IsSuccessful() bool {
+	if !j.HasRun {
+		log.Fatalln("The job must have run before its success can be determined")
 	}
-}
 
-func (r *VerifiableResponse) IsSuccessful() bool {
-	return r.StatusCode == r.ExpectedStatusCode
+	return j.Response.StatusCode == j.ExpectedStatusCode
 }
