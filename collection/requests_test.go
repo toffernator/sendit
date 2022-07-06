@@ -1,11 +1,11 @@
-package bag_test
+package collection_test
 
 import (
 	"net/http"
 	"testing"
 	"time"
 
-	"github.com/toffer/sendit/bag"
+	"github.com/toffer/sendit/collection"
 )
 
 func TestAdd(t *testing.T) {
@@ -22,28 +22,28 @@ func TestAdd(t *testing.T) {
 	}
 
 	t.Run("Add sequentially", func(t *testing.T) {
-		bag.Add(r1)
-		bag.Add(r2)
-		if bag.Size() != 2 {
-			t.Logf("Expected a size of 2 but is %d", bag.Size())
+		collection.Add(r1)
+		collection.Add(r2)
+		if collection.Size() != 2 {
+			t.Logf("Expected a size of 2 but is %d", collection.Size())
 			t.Fail()
 		}
 	})
 
 	t.Run("Add concurrently", func(t *testing.T) {
-		go bag.Add(r1)
-		bag.Add(r2)
+		go collection.Add(r1)
+		collection.Add(r2)
 
 		// Allow concurrent processes to complete before asserting state
 		time.Sleep(10 * time.Millisecond)
-		if bag.Size() != 4 {
-			t.Logf("Expected a size of 4 but is %d", bag.Size())
+		if collection.Size() != 4 {
+			t.Logf("Expected a size of 4 but is %d", collection.Size())
 			t.Fail()
 		}
 	})
 
 	t.Cleanup(func() {
-		bag.Clear()
+		collection.Clear()
 	})
 }
 
@@ -66,34 +66,34 @@ func TestRemove(t *testing.T) {
 		t.Fail()
 	}
 
-	bag.Add(r1)
-	bag.Add(r2)
-	bag.Add(r3)
+	collection.Add(r1)
+	collection.Add(r2)
+	collection.Add(r3)
 
 	t.Run("Remove sequentially", func(t *testing.T) {
-		bag.Remove()
-		bag.Remove()
-		bag.Remove()
+		collection.Remove()
+		collection.Remove()
+		collection.Remove()
 
-		if bag.Size() != 0 {
-			t.Logf("Expected a size of 0 but is %d", bag.Size())
+		if collection.Size() != 0 {
+			t.Logf("Expected a size of 0 but is %d", collection.Size())
 			t.Fail()
 		}
 	})
 
-	bag.Add(r1)
-	bag.Add(r2)
-	bag.Add(r3)
+	collection.Add(r1)
+	collection.Add(r2)
+	collection.Add(r3)
 
 	t.Run("Remove concurrently", func(t *testing.T) {
-		go bag.Remove()
-		go bag.Remove()
-		bag.Remove()
+		go collection.Remove()
+		go collection.Remove()
+		collection.Remove()
 
 		// Allow concurrent processes to complete before asserting state
 		time.Sleep(10 * time.Millisecond)
-		if bag.Size() != 0 {
-			t.Logf("Expected a size of 0 but is %d", bag.Size())
+		if collection.Size() != 0 {
+			t.Logf("Expected a size of 0 but is %d", collection.Size())
 			t.Fail()
 		}
 	})

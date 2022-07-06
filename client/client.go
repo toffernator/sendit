@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/toffer/sendit/bag"
+	"github.com/toffer/sendit/collection"
 )
 
 var (
@@ -27,7 +27,7 @@ func ParseReqs(path string, baseTarget string) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		req := parseReq(scanner.Text(), baseTarget)
-		bag.Add(req)
+		collection.Add(req)
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -60,9 +60,9 @@ func parseReq(req string, baseTarget string) *http.Request {
 
 func SendReqs() {
 	wg := new(sync.WaitGroup)
-	for bag.Size() > 0 {
+	for collection.Size() > 0 {
 		wg.Add(1)
-		j := bag.Remove()
+		j := collection.Remove()
 		go sendReq(wg, j)
 	}
 

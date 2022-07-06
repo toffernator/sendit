@@ -1,4 +1,4 @@
-package bag
+package collection
 
 import (
 	"net/http"
