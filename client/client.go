@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"sync"
 
-	jobparser "github.com/toffer/sendit/job_parser"
+	"github.com/toffer/sendit/jobparser"
 	"github.com/toffer/sendit/models"
 )
 
@@ -22,7 +22,7 @@ func init() {
 func SendReqs() {
 	wg := new(sync.WaitGroup)
 	for {
-		j, ok := <-jobparser.Jobs()
+		j, ok := <-jobparser.Jobs
 		if !ok {
 			// jobs channel is closed and drained
 			break

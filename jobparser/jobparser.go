@@ -12,11 +12,11 @@ import (
 )
 
 var (
-	jobs chan models.Job
+	Jobs chan models.Job
 )
 
 func init() {
-	jobs = make(chan models.Job)
+	Jobs = make(chan models.Job)
 }
 
 // ParseJobs populates a channel with jobs parsed from CSV file given by the path with a base url target,
@@ -31,19 +31,14 @@ func ParseJobs(path string, baseTarget string) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		j := parseJob(scanner.Text(), baseTarget)
-		jobs <- j
+		Jobs <- j
 	}
 
 	if err := scanner.Err(); err != nil {
 		log.Fatalf("There was an error while parsing requests: %s", err)
 	}
 
-	close(jobs)
-}
-
-// Jobs returns the channel containing all the parsed jobs
-func Jobs() chan models.Job {
-	return jobs
+	close(Jobs)
 }
 
 func parseJob(toParse string, baseTarget string) models.Job {

@@ -3,7 +3,7 @@ package jobparser_test
 import (
 	"testing"
 
-	jobparser "github.com/toffer/sendit/job_parser"
+	jobparser "github.com/toffer/sendit/jobparser"
 )
 
 const (
@@ -15,7 +15,7 @@ func TestParseJobsGivenRequestsCSVParses10Jobs(t *testing.T) {
 	go jobparser.ParseJobs(REQUESTS, BASE_TARGET)
 	totalJobs := 0
 	for {
-		_, ok := <-jobparser.Jobs()
+		_, ok := <-jobparser.Jobs
 		if !ok {
 			// jobs was closed and drained
 			break

@@ -2,15 +2,12 @@
 list:
   @just --list
 
-# Run the program
 run:
   @go run main.go
 
-# Test the program with auxillary services
 test:
   @echo "Make sure that bricebug/ping-pong is running with 'just start-ping'"
   @go test ./...
-
 
 # Start the dummy ping pong service for testing
 start-ping:

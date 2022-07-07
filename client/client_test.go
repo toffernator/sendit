@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/toffer/sendit/client"
-	jobparser "github.com/toffer/sendit/job_parser"
+	"github.com/toffer/sendit/jobparser"
 )
 
 const (
