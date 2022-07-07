@@ -1,55 +1,49 @@
 package client
 
 import (
-	"log"
 	"net/http"
 	"sync"
 
+	jobparser "github.com/toffer/sendit/job_parser"
 	"github.com/toffer/sendit/models"
 )
 
 var (
-	client = http.DefaultClient
+	client  *http.Client
+	results chan models.Job
 )
 
+func init() {
+	client = http.DefaultClient
+	results = make(chan models.Job)
+}
+
+// SendReqs completes all the jobs that are created by jobparser.ParseJobs()
 func SendReqs() {
 	wg := new(sync.WaitGroup)
-	for _, j := range jobs {
+	for {
+		j, ok := <-jobparser.Jobs()
+		if !ok {
+			// jobs channel is closed and drained
+			break
+		}
 		wg.Add(1)
 		go sendReq(wg, j)
 	}
 	wg.Wait()
+	close(results)
 }
 
-func sendReq(wg *sync.WaitGroup, job *models.Job) {
+func Results() chan models.Job {
+	return results
+}
+
+func sendReq(wg *sync.WaitGroup, job models.Job) {
 	defer wg.Done()
 
 	resp, err := client.Do(job.Request)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	job.Err = err
 	job.Response = resp
-	job.HasRun = true
-}
 
-type JobsResults struct {
-	Total     int
-	Successes int
-}
-
-func ComputeResults() JobsResults {
-	results := JobsResults{
-		Total:     0,
-		Successes: 0,
-	}
-	for _, j := range jobs {
-		if j.IsSuccessful() {
-			results.Successes++
-			results.Total++
-		} else {
-			results.Total++
-		}
-	}
-	return results
+	results <- job
 }

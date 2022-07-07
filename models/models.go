@@ -9,8 +9,8 @@ import (
 type Job struct {
 	Request            *http.Request
 	Response           *http.Response
-	HasRun             bool
 	ExpectedStatusCode int
+	Err                error
 }
 
 func NewJob(method string, url string, body io.Reader, expectedStatusCode int) Job {
@@ -27,9 +27,5 @@ func NewJob(method string, url string, body io.Reader, expectedStatusCode int) J
 }
 
 func (j *Job) IsSuccessful() bool {
-	if !j.HasRun {
-		log.Fatalln("The job must have run before its success can be determined")
-	}
-
 	return j.Response.StatusCode == j.ExpectedStatusCode
 }

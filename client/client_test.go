@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/toffer/sendit/client"
+	jobparser "github.com/toffer/sendit/job_parser"
 )
 
 const (
@@ -12,15 +13,22 @@ const (
 )
 
 func TestComputeResultsReturns10(t *testing.T) {
-	client.ParseJobs(REQUESTS, BASE_TARGET)
-	client.SendReqs()
-	results := client.ComputeResults()
+	go jobparser.ParseJobs(REQUESTS, BASE_TARGET)
+	go client.SendReqs()
 
-	if results.Total != 10 {
-		t.Logf("Expected 10 results found %d", results.Total)
-		t.Fail()
-	} else if results.Successes != 10 {
-		t.Logf("Expected 10 successes found %d", results.Successes)
+	totalResults := 0
+	for {
+		_, ok := <-client.Results()
+		if !ok {
+			// results was closed and drained
+			break
+		}
+		totalResults++
+	}
+
+	expected := 10
+	if totalResults != expected {
+		t.Logf("Expected %d results, but is %d", expected, totalResults)
 		t.Fail()
 	}
 }
