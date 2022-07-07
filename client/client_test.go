@@ -18,7 +18,7 @@ func TestComputeResultsReturns10(t *testing.T) {
 
 	totalResults := 0
 	for {
-		_, ok := <-client.Results()
+		_, ok := <-client.Results
 		if !ok {
 			// results was closed and drained
 			break

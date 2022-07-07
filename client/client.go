@@ -10,12 +10,12 @@ import (
 
 var (
 	client  *http.Client
-	results chan models.Job
+	Results chan models.Job
 )
 
 func init() {
 	client = http.DefaultClient
-	results = make(chan models.Job)
+	Results = make(chan models.Job)
 }
 
 // SendReqs completes all the jobs that are created by jobparser.ParseJobs()
@@ -31,11 +31,33 @@ func SendReqs() {
 		go sendReq(wg, j)
 	}
 	wg.Wait()
-	close(results)
+	close(Results)
 }
 
-func Results() chan models.Job {
-	return results
+type Result struct {
+	Successes int
+	Total     int
+}
+
+func TallyResults() Result {
+	result := Result{}
+
+	for {
+		r, ok := <-Results
+		if !ok {
+			// Results channel is closed and drained
+			break
+		}
+
+		if r.IsSuccessful() {
+			result.Successes++
+			result.Total++
+		} else {
+			result.Total++
+		}
+	}
+
+	return result
 }
 
 func sendReq(wg *sync.WaitGroup, job models.Job) {
@@ -45,5 +67,5 @@ func sendReq(wg *sync.WaitGroup, job models.Job) {
 	job.Err = err
 	job.Response = resp
 
-	results <- job
+	Results <- job
 }

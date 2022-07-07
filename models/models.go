@@ -27,5 +27,9 @@ func NewJob(method string, url string, body io.Reader, expectedStatusCode int) J
 }
 
 func (j *Job) IsSuccessful() bool {
+	if j.Response == nil {
+		return false
+	}
+
 	return j.Response.StatusCode == j.ExpectedStatusCode
 }
