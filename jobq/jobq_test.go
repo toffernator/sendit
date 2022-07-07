@@ -17,7 +17,7 @@ func TestEnqueue(t *testing.T) {
 		}
 	})
 	t.Run("Queue is not empty after enqueuing", func(t *testing.T) {
-		jobq.Enqueue(*job)
+		jobq.Enqueue(job)
 
 		if jobq.IsEmpty() {
 			t.Log("Queue should no longer be empty, it is")
@@ -33,7 +33,7 @@ func TestEnqueue(t *testing.T) {
 
 func TestDequeue(t *testing.T) {
 	job := models.NewJob("GET", "/ping", nil, 200)
-	jobq.Enqueue(*job)
+	jobq.Enqueue(job)
 
 	t.Run("Queue is initially empty", func(t *testing.T) {
 		if jobq.IsEmpty() {

@@ -13,13 +13,13 @@ type Job struct {
 	ExpectedStatusCode int
 }
 
-func NewJob(method string, url string, body io.Reader, expectedStatusCode int) *Job {
+func NewJob(method string, url string, body io.Reader, expectedStatusCode int) Job {
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		log.Fatalf("Error while creating a new request: %s", err)
 	}
 
-	return &Job{
+	return Job{
 		Request:            req,
 		Response:           nil,
 		ExpectedStatusCode: expectedStatusCode,
