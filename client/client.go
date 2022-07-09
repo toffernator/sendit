@@ -1,6 +1,8 @@
 package client
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 	"sync"
 
@@ -9,13 +11,15 @@ import (
 )
 
 var (
-	client  *http.Client
-	Results chan models.Job
+	client   *http.Client
+	SentJobs chan models.Job
+	Results  map[string]Result
 )
 
 func init() {
 	client = http.DefaultClient
-	Results = make(chan models.Job)
+	SentJobs = make(chan models.Job)
+	Results = make(map[string]Result)
 }
 
 // SendReqs completes all the jobs that are created by jobparser.ParseJobs()
@@ -25,39 +29,14 @@ func SendReqs() {
 		j, ok := <-jobparser.Jobs
 		if !ok {
 			// jobs channel is closed and drained
+			log.Println("Jobs channel closed and drained")
 			break
 		}
 		wg.Add(1)
 		go sendReq(wg, j)
 	}
 	wg.Wait()
-	close(Results)
-}
-
-type Result struct {
-	Successes int
-	Total     int
-}
-
-func TallyResults() Result {
-	result := Result{}
-
-	for {
-		r, ok := <-Results
-		if !ok {
-			// Results channel is closed and drained
-			break
-		}
-
-		if r.IsSuccessful() {
-			result.Successes++
-			result.Total++
-		} else {
-			result.Total++
-		}
-	}
-
-	return result
+	close(SentJobs)
 }
 
 func sendReq(wg *sync.WaitGroup, job models.Job) {
@@ -67,5 +46,38 @@ func sendReq(wg *sync.WaitGroup, job models.Job) {
 	job.Err = err
 	job.Response = resp
 
-	Results <- job
+	SentJobs <- job
+}
+
+type Result struct {
+	Successes int
+	Failures  int
+}
+
+func TallyResults() {
+	for {
+		j, ok := <-SentJobs
+		if !ok {
+			// Results channel is closed and drained
+			log.Println("SentJobs channel closed and drained")
+			break
+		}
+
+		endpoint := fmt.Sprintf("%s - %s", j.Request.URL.EscapedPath(), j.Request.Method)
+
+		var result Result
+		if r, contains := Results[endpoint]; contains {
+			result = r
+		} else {
+			result = Result{}
+		}
+
+		if j.IsSuccessful() {
+			result.Successes++
+		} else {
+			result.Failures++
+		}
+
+		Results[endpoint] = result
+	}
 }

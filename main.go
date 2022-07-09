@@ -15,7 +15,9 @@ const (
 func main() {
 	go jobparser.ParseJobs(REQUESTS, TARGET)
 	go client.SendReqs()
-	result := client.TallyResults()
+	client.TallyResults()
 
-	fmt.Printf("%d / %d\n", result.Successes, result.Total)
+	for endpoint, result := range client.Results {
+		fmt.Printf("%s: %d / %d\n", endpoint, result.Successes, (result.Successes + result.Failures))
+	}
 }
