@@ -33,3 +33,5 @@ func (j *Job) IsSuccessful() bool {
 
 	return j.Response.StatusCode == j.ExpectedStatusCode
 }
+
+type Path = string
