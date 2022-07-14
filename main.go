@@ -23,4 +23,5 @@ func main() {
 	}
 
 	generator.ParseJSON("generator/petstore.json")
+	fmt.Printf("generator.Paths(): %v\n", generator.Paths())
 }
